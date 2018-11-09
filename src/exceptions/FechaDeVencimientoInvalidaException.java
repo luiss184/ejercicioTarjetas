@@ -2,8 +2,8 @@ package exceptions;
 
 public class FechaDeVencimientoInvalidaException extends Exception {
 
-	public FechaDeVencimientoInvalidaException() {
-		// TODO Auto-generated constructor stub
+	public FechaDeVencimientoInvalidaException(String msg) {
+        super(msg);
 	}
 
 }

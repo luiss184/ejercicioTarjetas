@@ -2,14 +2,21 @@ package model;
 
 import java.util.Date;
 
+import javax.print.PrintService;
+import javax.print.PrintServiceLookup;
+
+import exceptions.DBException;
 import exceptions.FechaDeVencimientoInvalidaException;
+import exceptions.ImpresoraException;
+import exceptions.InfoTCException;
+import exceptions.InformeDePagoException;
 
 public class Tarjeta {
 	
 	private Marca marca;
 	private String numeroTarjeta;
-    private String cardHolder;
-    private Date fechaVencimiento;
+    	private String cardHolder;
+    	private Date fechaVencimiento;
     
 	public Tarjeta(Marca marca, String numeroTarjeta, String cardHolder, Date fechaVencimiento) throws FechaDeVencimientoInvalidaException{
 		this.marca = marca;
@@ -20,7 +27,7 @@ public class Tarjeta {
 			this.fechaVencimiento = fechaVencimiento;
 		} else {
 			System.out.println("No se pudo crear la tarjeta debido a que la fecha de Vencimiento es Invalida");
-			throw new FechaDeVencimientoInvalidaException();
+			throw new FechaDeVencimientoInvalidaException("Error de validacion en fecha de Expiracion");
 		}
 		
 		
@@ -124,7 +131,23 @@ public class Tarjeta {
 		if (tarjeta != null ) {
 			if (Tarjeta.validarFechaDeExpirancion(tarjeta.getFechaVencimiento())) {
 				if (importe <= 1000) {
-					System.out.println("Operacion Correcta");
+					
+					try {
+						imprimirFactura();			  //imprimir factura en controladora fiscal
+
+						enviarInfoTC();                      //enviar info de tarjeta de crédito
+
+						informarPago();                     //Informar pago a comercial
+
+						actualizarSaldo(tarjeta.getCardHolder());        //actualizar saldo del cliente
+					
+						System.out.println("Operacion Correcta");
+						
+					} catch (ImpresoraException | InfoTCException | InformeDePagoException | DBException e) {
+						// TODO Auto-generated catch block
+						System.out.println("No se pudo realizar la operacion. " + e.getMessage());
+					}	
+
 				} else {
 					System.out.println("Operacion Inorrecta. Excede el monto maximo permitido");
 				}
@@ -134,6 +157,53 @@ public class Tarjeta {
 		} else {
 			System.out.println("Operacion Inorrecta. Tarjeta nula");
 		}
+	}
+
+	private static void actualizarSaldo(String cliente) throws DBException {
+
+		try {
+			// Obtiene la conexion a la BD y actualiza el saldo del cliente
+			// En caso de error lanza una excepción DBException
+		} catch (Exception e) {
+			throw new DBException ("Error al intentar actualizar el saldo del cliente en la base de datos");
+		}
+		
+	}
+
+	private static void informarPago() throws InformeDePagoException {
+		
+		try {
+			
+			//Si el emisor no puede informar el pago se lanza una excepcion InformeDePagoException
+			
+		}catch (Exception e) {
+			throw new InformeDePagoException("No se pudo infomrar el pago");
+		}
+		
+	}
+
+	private static void enviarInfoTC() throws InfoTCException {
+		
+		try {
+			//Se invoca al servicio que envia los datos de la tarjeta
+			// Si devuelve error se lanza la excepcion InfoTCException
+			
+		} catch (Exception e) {
+			
+			throw new InfoTCException("Error en el envio de datos de la tarjeta");
+		}
+		
+		
+	}
+
+	private static void imprimirFactura() throws ImpresoraException {
+		try {
+			PrintService ps=PrintServiceLookup.lookupDefaultPrintService();
+			
+		} catch (Exception e){
+			 throw new ImpresoraException ("Error al imprimir la factura.");
+		}
+		
 	}
 
 	public static void esTarjetaValida (Tarjeta tarjeta) {
